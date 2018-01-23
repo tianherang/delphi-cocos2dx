@@ -1,0 +1,49 @@
+unit TransformUtils;
+
+interface
+uses
+  cAffineTransform, OpenGL;
+
+procedure CGAffineToGL(const t: PCCAffineTransform; m: PGLfloat);
+procedure GLToCGAffine(const m: PGLfloat; t: PCCAffineTransform);
+
+implementation
+
+type
+  TGLfloatAry = array [0..15] of GLfloat;
+  PGLFloatAry = ^TGLfloatAry;
+
+procedure CGAffineToGL(const t: PCCAffineTransform; m: PGLfloat);
+begin
+    // | m[0] m[4] m[8]  m[12] |     | m11 m21 m31 m41 |     | a c 0 tx |
+    // | m[1] m[5] m[9]  m[13] |     | m12 m22 m32 m42 |     | b d 0 ty |
+    // | m[2] m[6] m[10] m[14] | <=> | m13 m23 m33 m43 | <=> | 0 0 1  0 |
+    // | m[3] m[7] m[11] m[15] |     | m14 m24 m34 m44 |     | 0 0 0  1 |
+    
+  PGLFloatAry(m)[2] := 0.0;
+  PGLFloatAry(m)[3] := 0.0;
+  PGLFloatAry(m)[6] := 0.0;
+  PGLFloatAry(m)[7] := 0.0;
+  PGLFloatAry(m)[8] := 0.0;
+  PGLFloatAry(m)[9] := 0.0;
+  PGLFloatAry(m)[11] := 0.0;
+  PGLFloatAry(m)[14] := 0.0;
+
+  PGLFloatAry(m)[10] := 1.0;
+  PGLFloatAry(m)[15] := 1.0;
+
+  PGLFloatAry(m)[0] := t^.a;
+  PGLFloatAry(m)[4] := t^.c;
+  PGLFloatAry(m)[12] := t^.tx;
+  PGLFloatAry(m)[1] := t^.b;
+  PGLFloatAry(m)[5] := t^.d;
+  PGLFloatAry(m)[13] := t^.ty;
+end;
+  
+procedure GLToCGAffine(const m: PGLfloat; t: PCCAffineTransform);
+begin
+  t^.a := PGLFloatAry(m)[0]; t^.c := PGLFloatAry(m)[4]; t^.tx := PGLFloatAry(m)[12];
+  t^.b := PGLFloatAry(m)[1]; t^.d := PGLFloatAry(m)[5]; t^.ty := PGLFloatAry(m)[13];
+end;
+
+end.
